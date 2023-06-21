@@ -1,25 +1,14 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+import uvicorn
+from api.hadlers import user_router
+from fastapi import FastAPI
+from fastapi.routing import APIRouter
 
-app = FastAPI()
-
-templates = Jinja2Templates(directory="templates")
-app.mount("/static/", StaticFiles(directory="static"), name="static")
+app = FastAPI(title="shift")
 
 
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    data = {"page": "Home page"}
-    return templates.TemplateResponse(
-        "page.html", {"request": request, "data": data}
-    )
+main_api_router = APIRouter()
 
-
-@app.get("/page/{page_name}", response_class=HTMLResponse)
-async def page(request: Request, page_name: str):
-    data = {"page": page_name}
-    return templates.TemplateResponse(
-        "page.html", {"request": request, "data": data}
-    )
+main_api_router.include_router(user_router, tags=["user"])
+app.include_router(main_api_router)
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
