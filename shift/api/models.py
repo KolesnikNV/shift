@@ -1,7 +1,9 @@
 import re
 import uuid
 
+from db.models import User
 from fastapi import HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, EmailStr, validator
 
 LETTER_MATCH_PATTERN = re.compile(r"^[а-яА-Яa-zA-Z\-]+$")
@@ -19,7 +21,6 @@ class ShowUser(TunedModel):
     name: str
     surname: str
     email: EmailStr
-    is_active: bool
     salary: float
     salary_increase_date: str
 
@@ -28,6 +29,7 @@ class UserCreate(BaseModel):
     name: str
     surname: str
     email: EmailStr
+    password: str
     salary: float
     salary_increase_date: str
 
@@ -46,3 +48,15 @@ class UserCreate(BaseModel):
                 status_code=422, detail="Surname should contains only letters"
             )
         return value
+
+
+class UserToken(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    email: str
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
