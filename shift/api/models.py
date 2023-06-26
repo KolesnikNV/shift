@@ -1,9 +1,9 @@
 import re
+from typing import Optional
 import uuid
 
 from db.models import User
-from fastapi import HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, HTTPException
 from pydantic import BaseModel, EmailStr, validator
 
 LETTER_MATCH_PATTERN = re.compile(r"^[а-яА-Яa-zA-Z\-]+$")
@@ -21,7 +21,7 @@ class ShowUser(TunedModel):
     name: str
     surname: str
     email: EmailStr
-    salary: float
+    salary: int
     salary_increase_date: str
 
 
@@ -30,7 +30,8 @@ class UserCreate(BaseModel):
     surname: str
     email: EmailStr
     password: str
-    salary: float
+    is_admin: bool
+    salary: int
     salary_increase_date: str
 
     @validator("name")
@@ -50,6 +51,16 @@ class UserCreate(BaseModel):
         return value
 
 
+class UserUpdate(BaseModel):
+    name: Optional[str]
+    surname: Optional[str]
+    email: Optional[EmailStr]
+    password: Optional[str]
+    is_admin: Optional[bool]
+    salary: Optional[int]
+    salary_increase_date: Optional[str]
+
+
 class UserToken(BaseModel):
     access_token: str
     token_type: str
@@ -57,6 +68,4 @@ class UserToken(BaseModel):
 
 class TokenData(BaseModel):
     email: str
-
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+    password: str
