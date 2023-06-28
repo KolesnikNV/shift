@@ -1,9 +1,8 @@
 import re
-from typing import Optional
 import uuid
+from typing import Optional
 
-from db.models import User
-from fastapi import Depends, HTTPException
+from fastapi import HTTPException
 from pydantic import BaseModel, EmailStr, validator
 
 LETTER_MATCH_PATTERN = re.compile(r"^[а-яА-Яa-zA-Z\-]+$")
@@ -11,8 +10,6 @@ LETTER_MATCH_PATTERN = re.compile(r"^[а-яА-Яa-zA-Z\-]+$")
 
 class TunedModel(BaseModel):
     class Config:
-        """tells pydantic to convert even non dict obj to json"""
-
         orm_mode = True
 
 
@@ -21,6 +18,7 @@ class ShowUser(TunedModel):
     name: str
     surname: str
     email: EmailStr
+    password: str
     salary: int
     salary_increase_date: str
 

@@ -1,18 +1,10 @@
 import uuid
-from enum import Enum
 
-from fastapi import Depends, HTTPException, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
-
-
-class Role(str, Enum):
-    ADMIN = ("Admin",)
-    USER = ("User",)
 
 
 class User(Base):

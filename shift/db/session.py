@@ -1,21 +1,17 @@
-from typing import Generator
-
-from sqlalchemy import func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-import shift.settings as settings
+from shift.settings import REAL_DATABASE_URL
 from shift.db.models import User
 
-engine = create_async_engine(
-    settings.REAL_DATABASE_URL, future=True, echo=True
-)
+engine = create_async_engine(REAL_DATABASE_URL, future=True, echo=True)
 async_session = sessionmaker(
     engine, expire_on_commit=False, class_=AsyncSession
 )
 
 
-async def get_db() -> Generator:
+async def get_db():
     try:
         session: AsyncSession = async_session()
         yield session
@@ -23,8 +19,6 @@ async def get_db() -> Generator:
         await session.close()
 
 
-async def count_users():
-    async for db in get_db():
-        async with db.begin():
-            count = await db.scalar(func.count(User.user_id))
-            return count
+async def count_users(db):
+    count = await db.scalar(select(func.count(User.user_id)))
+    return count

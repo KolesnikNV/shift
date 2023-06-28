@@ -1,11 +1,7 @@
 import logging
 import uuid
 
-from api.models import ShowUser, UserCreate
-from db.crud import check_is_admin, get_user_id
-from db.models import User
-from db.session import get_db
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.templating import Jinja2Templates
 from psycopg2 import IntegrityError
@@ -16,8 +12,10 @@ from shift.api.auth import (
     generate_access_token,
     get_token,
 )
-from shift.api.models import UserToken, UserUpdate
-
+from shift.api.models import ShowUser, UserCreate, UserToken, UserUpdate
+from shift.db.crud import check_is_admin, get_user_by_id, get_user_id
+from shift.db.models import User
+from shift.db.session import get_db
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename="logfile.log", level=logging.DEBUG)
@@ -28,10 +26,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/")
 
 @user_router.post("/login/", response_model=UserToken)
 async def login(
-    user_id: str, password: str, db: AsyncSession = Depends(get_db)
+    request: Request,
+    db: AsyncSession = Depends(get_db),
 ):
+    data = await request.json()
+    user_id = data["user_id"]
+    password = data["password"]
     user = await get_user_id(user_id, db)
-
     if user and user.password == password:
         token = generate_access_token(user.user_id)
         return {"access_token": token, "token_type": "bearer"}
@@ -51,48 +52,59 @@ async def create_user(
     decoded_token = decode_access_token(token=token)
     user_id = decoded_token.get("user_id")
     user = await check_is_admin(user_id, db)
-    if not user:
+    if not user.is_admin:
         raise HTTPException(
             status_code=403, detail="Only admins can create users"
         )
 
-    async with db.begin():
-        user = User(
-            name=body.name,
-            surname=body.surname,
-            email=body.email,
-            password=body.password,
-            salary=body.salary,
-            salary_increase_date=body.salary_increase_date,
-        )
-        try:
-            db.add(user)
-            await db.flush()
-        except IntegrityError as err:
-            logger.error(err)
-            raise HTTPException(
-                status_code=500, detail=f"Database error: {err}"
-            )
-        user_id = user.user_id
-        show_user = ShowUser(
-            user_id=user_id,
-            name=user.name,
-            surname=user.surname,
-            email=user.email,
-            salary=user.salary,
-            salary_increase_date=user.salary_increase_date,
-        )
-        return show_user
+    user = User(
+        name=body.name,
+        surname=body.surname,
+        email=body.email,
+        password=body.password,
+        salary=body.salary,
+        salary_increase_date=body.salary_increase_date,
+    )
+    try:
+        db.add(user)
+        await db.commit()
+    except IntegrityError as err:
+        logger.error(err)
+        raise HTTPException(status_code=403, detail=f"Database error: {err}")
+    user_id = user.user_id
+    show_user = ShowUser(
+        user_id=user_id,
+        name=user.name,
+        surname=user.surname,
+        email=user.email,
+        password=user.password,
+        salary=user.salary,
+        salary_increase_date=user.salary_increase_date,
+    )
+    return show_user
 
 
 @user_router.get("/user/{user_id}/", response_model=ShowUser)
-async def get_user_by_id(
+async def get_user(
     user_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-) -> ShowUser:
-    async with db.begin():
-        user = await db.get(User, user_id)
-        return user
+    token: str = Depends(get_token),
+):
+    decoded_token = decode_access_token(token=token)
+    user_id = decoded_token.get("user_id")
+    user = await check_is_admin(user_id, db)
+    if user.is_admin:
+        user = await get_user_by_id(user_id, db)
+    elif user_id == user.user_id:
+        user = await get_user_by_id(user_id, db)
+    else:
+        raise HTTPException(
+            status_code=403,
+            detail="Only admins or user with this id can get this information ",
+        )
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 
 @user_router.patch("/user/{user_id}/", response_model=ShowUser)
@@ -107,7 +119,8 @@ async def patch_user(
     admin = await check_is_admin(admin_id, db)
     if not admin:
         raise HTTPException(
-            status_code=403, detail="Only admins can patch users"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can patch users",
         )
 
     user = await get_user_id(user_id, db)
@@ -128,11 +141,14 @@ async def patch_user(
         user.is_admin = body.is_admin
 
     try:
+        await db.commit()
         await db.refresh(user)
-        await db.flush()
     except IntegrityError as err:
-        logger.error(err)
-        raise HTTPException(status_code=500, detail=f"Database error: {err}")
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {err}",
+        )
 
     show_user = ShowUser(
         user_id=user.user_id,
