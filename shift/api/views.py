@@ -39,7 +39,7 @@ async def login(
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Ошибка аутентификации",
+            detail="Authentication error",
         )
 
 

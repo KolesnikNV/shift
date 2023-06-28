@@ -37,10 +37,10 @@ def validate_token(token: str):
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Недействительный токен",
+            detail="Invalid token",
         )
     except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Ошибка аутентификации",
+            detail="Authentication error",
         )

@@ -6342,7 +6342,7 @@
         "kind": 2,
         "importPath": "shift.api.auth",
         "description": "shift.api.auth",
-        "peekOfCode": "def decode_access_token(token: str = Depends(get_token)) -> dict:\n    user_id = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)\n    return user_id\ndef validate_token(token: str):\n    try:\n        jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])\n    except jwt.ExpiredSignatureError:\n        raise HTTPException(\n            status_code=status.HTTP_401_UNAUTHORIZED,\n            detail=\"Недействительный токен\",",
+        "peekOfCode": "def decode_access_token(token: str = Depends(get_token)) -> dict:\n    user_id = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)\n    return user_id\ndef validate_token(token: str):\n    try:\n        jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])\n    except jwt.ExpiredSignatureError:\n        raise HTTPException(\n            status_code=status.HTTP_401_UNAUTHORIZED,\n            detail=\"Invalid token\",",
         "detail": "shift.api.auth",
         "documentation": {}
     },
@@ -6351,7 +6351,7 @@
         "kind": 2,
         "importPath": "shift.api.auth",
         "description": "shift.api.auth",
-        "peekOfCode": "def validate_token(token: str):\n    try:\n        jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])\n    except jwt.ExpiredSignatureError:\n        raise HTTPException(\n            status_code=status.HTTP_401_UNAUTHORIZED,\n            detail=\"Недействительный токен\",\n        )\n    except jwt.InvalidTokenError:\n        raise HTTPException(",
+        "peekOfCode": "def validate_token(token: str):\n    try:\n        jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])\n    except jwt.ExpiredSignatureError:\n        raise HTTPException(\n            status_code=status.HTTP_401_UNAUTHORIZED,\n            detail=\"Invalid token\",\n        )\n    except jwt.InvalidTokenError:\n        raise HTTPException(",
         "detail": "shift.api.auth",
         "documentation": {}
     },
