@@ -1,9 +1,9 @@
-[![Python version](https://img.shields.io/badge/python-%3E%3D3.11-blue)](https://www.python.org/downloads/release/python-311/)
-[![Asyncio](https://img.shields.io/badge/asyncio-supported-green)](https://docs.python.org/3/library/asyncio.html)
-[![FastAPI version](https://img.shields.io/badge/fastapi-%3E%3D0.97.0-red)](https://fastapi.tiangolo.com/)
-[![SQLAlchemy version](https://img.shields.io/badge/sqlalchemy-%3E%3D2.0.16-yellow)](https://www.sqlalchemy.org/)
-[![Alembic version](https://img.shields.io/badge/alembic-%3E%3D1.11.1-green)](https://alembic.sqlalchemy.org/)
-[![PostgreSQL](https://img.shields.io/badge/postgres-supported-blue)](https://www.postgresql.org/)
+![Python](https://img.shields.io/badge/python-blue)
+![Asyncio](https://img.shields.io/badge/asyncio-green)
+![FastAPI](https://img.shields.io/badge/fastapi-red)
+![SQLAlchemy](https://img.shields.io/badge/sqlalchemy-yellow)
+![Alembic](https://img.shields.io/badge/alembic-green)
+![PostgreSQL](https://img.shields.io/badge/postgres-blue)
 
 # Проект Shift
 
